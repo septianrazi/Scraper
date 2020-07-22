@@ -10,7 +10,6 @@ from myParser import getDetailsFromWebElement
 
 import csv
 
-
 PATH = "C:\Program Files (x86)\chromedriver.exe"
 chrome_options = webdriver.ChromeOptions()
 prefs = {"profile.default_content_setting_values.notifications" : 2}
@@ -20,6 +19,22 @@ driver = webdriver.Chrome(PATH, chrome_options = chrome_options)
 
 driver.get("https://www.facebook.com/")
 print(driver.title)
+
+def convertPostListToCSV(post_list):
+    posts_data_list = []
+    for post in post_list:
+        res = getDetailsFromWebElement(post)
+        posts_data_list.append(res)
+    # print(posts_data_list)
+
+    #convert to CSV
+    keys = posts_data_list[0].keys()
+    with open('data.csv', 'w', encoding="utf8") as output_file:
+        dict_writer = csv.DictWriter(output_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(posts_data_list)
+
+
 
 class FBBot:
     def __init__(self, driver, username, pw):
@@ -44,27 +59,50 @@ class FBBot:
 
     # scrolls to the bottom of page
     def scrollDown(self):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        sleep(4)
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        # try:
+        #     self.clickOnAllSeeMore()
+        # except:
+        #     print("no see more!")
+        sleep(15)
 
     def scrollToBottom(self):
         last_height, height = 0, 1
+        count = 0
         while last_height != height:
             last_height = height
+            # try:
             self.scrollDown()
             height = driver.execute_script("return document.body.scrollHeight")
+            count = count+1
+            if (count % 500 == 0):
+                self.clickOnAllSeeMore()
+                self.getCSV()
             print (height)
+            # except:
+            #     break
 
     def getPosts(self):
-        feed = self.driver.find_element_by_xpath("//div[@aria-label='News Feed']")
-        post_list = feed.find_elements_by_xpath("//div[@role='article']")
-        return post_list
+        try: 
+            feed = self.driver.find_element_by_xpath("//div[@aria-label='News Feed']")
+            post_list = feed.find_elements_by_xpath("//div[@role='article']")
+            return post_list
+        except:
+            return []
 
+    def getCSV(self):
+        post_list_here = self.getPosts()
+        convertPostListToCSV(post_list_here)
+        print("saving CSV")
+            
     # function to click on all see mores
     def clickOnAllSeeMore(self):
         seeMoreButton = driver.find_elements_by_xpath("//a[@class='see_more_link']")
         for x in seeMoreButton:
-            driver.execute_script("arguments[0].click();", x)
+            try:
+                driver.execute_script("arguments[0].click();", x)
+            except:
+                continue
 
 fbbot = FBBot(driver, "raziseptian@gmail.com", pw)
 fbbot.login()
@@ -72,23 +110,8 @@ fbbot.goTo("https://www.facebook.com/groups/fennerhall")
 # fbbot.goTo("https://www.facebook.com/groups/1611813365545792/")
 fbbot.scrollToBottom()
 
-fbbot.clickOnAllSeeMore()
-
 post_list = fbbot.getPosts()
-
-posts_data_list = []
-for post in post_list:
-    res = getDetailsFromWebElement(post)
-    posts_data_list.append(res)
-print(posts_data_list)
-
-#convert to CSV
-keys = posts_data_list[0].keys()
-with open('data.csv', 'w', encoding="utf8") as output_file:
-    dict_writer = csv.DictWriter(output_file, keys)
-    dict_writer.writeheader()
-    dict_writer.writerows(posts_data_list)
-
+convertPostListToCSV(post_list)
 
 print("///////////////////")
 print("///////////////////")
@@ -100,3 +123,8 @@ print("///////////////////")
 
 sleep(5)
 print("done")
+
+from datetime import datetime
+now = datetime.now()
+current_time = now.strftime("%H:%M:%S")
+print("Current Time =", current_time)
