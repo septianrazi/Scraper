@@ -1,5 +1,9 @@
 ## MAIN FUNCTION 
 # takes a web element and returns dictionary of stuff
+
+import re
+
+
 def getDetailsFromWebElement(webelement):
     res_dict = {}
     res_dict["date"]            = getDate(webelement)
@@ -45,7 +49,7 @@ def getCommentCount(webelement):
     if len(comments_list) == 0:
         return 0
     comments_text = comments_list[0].text
-    comment_num = int(comments_text[0])
+    comment_num = re.sub('\D', '', comments_text)
     return comment_num
 
 def getLink(webelement):

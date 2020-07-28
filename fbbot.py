@@ -75,7 +75,7 @@ class FBBot:
             self.scrollDown()
             height = driver.execute_script("return document.body.scrollHeight")
             count = count+1
-            if (count % 500 == 0):
+            if (count % 80 == 0):
                 self.clickOnAllSeeMore()
                 self.getCSV()
             print (height)
@@ -104,10 +104,9 @@ class FBBot:
             except:
                 continue
 
-fbbot = FBBot(driver, "raziseptian@gmail.com", pw)
+fbbot = FBBot(driver, "email here", pw)
 fbbot.login()
 fbbot.goTo("https://www.facebook.com/groups/fennerhall")
-# fbbot.goTo("https://www.facebook.com/groups/1611813365545792/")
 fbbot.scrollToBottom()
 
 post_list = fbbot.getPosts()
